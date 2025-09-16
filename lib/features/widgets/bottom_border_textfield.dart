@@ -49,7 +49,10 @@ class BottomBorderTextField extends StatelessWidget {
         style: const TextStyle(fontSize: 16, color: Colors.black87),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TextStyle(fontSize: 16, color: Colors.grey[400]),
+          hintStyle: TextStyle(
+            fontSize: 16,
+            color: Colors.black.withValues(alpha: 0.7),
+          ),
           prefixIcon: prefixIcon,
           suffixIcon: suffixIcon,
           contentPadding: const EdgeInsets.symmetric(
