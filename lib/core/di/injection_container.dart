@@ -11,6 +11,8 @@ import 'package:product_listing_app/features/auth/domain/usecases/resend_otp_use
 import 'package:product_listing_app/features/auth/domain/usecases/verify_user_usecase.dart';
 import 'package:product_listing_app/features/auth/domain/usecases/login_register_usecase.dart';
 import 'package:product_listing_app/features/auth/domain/usecases/save_token_usecase.dart';
+import 'package:product_listing_app/features/auth/domain/usecases/get_token_usecase.dart';
+import 'package:product_listing_app/features/auth/domain/usecases/delete_token_usecase.dart';
 import 'package:product_listing_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:product_listing_app/features/home/data/repositories/search_repository.dart';
@@ -26,6 +28,12 @@ import 'package:product_listing_app/features/home/data/repositories/banner_repos
 import 'package:product_listing_app/features/home/domain/repositories/banner_repository.dart';
 import 'package:product_listing_app/features/home/domain/usecases/get_banners_usecase.dart';
 import 'package:product_listing_app/features/home/presentation/bloc/banner_bloc.dart';
+import 'package:product_listing_app/features/home/presentation/bloc/product_bloc.dart';
+import 'package:product_listing_app/features/home/domain/repositories/product_repository.dart';
+import 'package:product_listing_app/features/home/data/repositories/product_repository_impl.dart';
+import 'package:product_listing_app/features/home/data/datasources/product_remote_datasource.dart';
+import 'package:product_listing_app/features/home/data/datasources/product_remote_datasource_impl.dart';
+import 'package:product_listing_app/features/home/domain/usecases/get_products_usecase.dart';
 import 'package:http/http.dart' as http;
 
 final sl = GetIt.instance;
@@ -42,12 +50,15 @@ Future<void> initializeDependencies() async {
       verifyUserUseCase: sl(),
       loginRegisterUseCase: sl(),
       saveTokenUseCase: sl(),
+      getTokenUseCase: sl(),
+      deleteTokenUseCase: sl(),
     ),
   );
   sl.registerFactory(() => SearchBloc(repository: sl()));
   sl.registerLazySingleton(() => WishlistBloc(repository: sl()));
   sl.registerFactory(() => ProfileBloc(getUserDataUseCase: sl()));
   sl.registerFactory(() => BannerBloc(getBannersUseCase: sl()));
+  sl.registerFactory(() => ProductBloc(getProductsUseCase: sl()));
 
   // Use cases
   sl.registerLazySingleton(() => SendOtpUseCase(sl()));
@@ -56,7 +67,10 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton(() => VerifyUserUseCase(sl()));
   sl.registerLazySingleton(() => LoginRegisterUseCase(sl()));
   sl.registerLazySingleton(() => SaveTokenUseCase(sl()));
+  sl.registerLazySingleton(() => GetTokenUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteTokenUseCase(sl()));
   sl.registerLazySingleton(() => GetBannersUseCase(sl()));
+  sl.registerLazySingleton(() => GetProductsUseCase(repository: sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
@@ -76,6 +90,9 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton<BannerRepository>(
     () => BannerRepositoryImpl(remoteDataSource: sl()),
   );
+  sl.registerLazySingleton<ProductRepository>(
+    () => ProductRepositoryImpl(remoteDataSource: sl()),
+  );
 
   // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
@@ -86,6 +103,9 @@ Future<void> initializeDependencies() async {
   );
   sl.registerLazySingleton<BannerRemoteDataSource>(
     () => BannerRemoteDataSourceImpl(client: sl()),
+  );
+  sl.registerLazySingleton<ProductRemoteDataSource>(
+    () => ProductRemoteDataSourceImpl(client: sl()),
   );
 
   // HTTP Client

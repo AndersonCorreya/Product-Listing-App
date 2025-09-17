@@ -32,4 +32,8 @@ abstract class AuthRepository {
   });
 
   Future<Either<Failure, void>> saveToken(String token);
+
+  Future<Either<Failure, String?>> getToken();
+
+  Future<Either<Failure, void>> deleteToken();
 }

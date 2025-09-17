@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:product_listing_app/features/widgets/app_text.dart';
+import 'package:product_listing_app/core/utils/responsive.dart';
 
 class CustomSearchField extends StatelessWidget {
   final String? hintText;
@@ -36,16 +37,17 @@ class CustomSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     return Container(
-      height: 48,
+      height: r.h(48),
       decoration: BoxDecoration(
         color: backgroundColor ?? Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(r.w(10)),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: r.w(8),
+            offset: Offset(0, r.h(2)),
           ),
         ],
       ),
@@ -57,32 +59,35 @@ class CustomSearchField extends StatelessWidget {
         onTap: onTap,
         enabled: enabled,
         style:
-            textStyle ?? const TextStyle(fontSize: 16, color: Colors.black87),
+            textStyle ?? TextStyle(fontSize: r.sp(16), color: Colors.black87),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle:
               hintStyle ??
               TextStyle(
-                fontSize: 16,
+                fontSize: r.sp(16),
                 color: hintTextColor ?? Colors.grey[700],
                 fontWeight: FontWeight.normal,
               ),
           prefixIcon: prefixIcon,
           suffixIcon: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(horizontal: r.w(12)),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const AppText.light(
+                AppText.light(
                   '|',
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 30,
+                    fontSize: r.sp(30),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(width: 8),
-                SvgPicture.asset('assets/icons/search_icon.svg', height: 30),
+                SizedBox(width: r.w(8)),
+                SvgPicture.asset(
+                  'assets/icons/search_icon.svg',
+                  height: r.w(30),
+                ),
               ],
             ),
           ),
@@ -95,7 +100,7 @@ class CustomSearchField extends StatelessWidget {
           focusedBorder: InputBorder.none,
           contentPadding:
               contentPadding ??
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
         ),
       ),
     );

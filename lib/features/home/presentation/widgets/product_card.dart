@@ -4,6 +4,7 @@ import 'package:product_listing_app/core/constants/app_colors.dart';
 import 'package:product_listing_app/features/widgets/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:product_listing_app/features/home/presentation/bloc/wishlist_bloc.dart';
+import 'package:product_listing_app/core/utils/responsive.dart';
 
 class ProductCard extends StatefulWidget {
   final String imageUrl;
@@ -44,6 +45,7 @@ class _ProductCardState extends State<ProductCard> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = (screenWidth - 48) / 2; // Account for padding and spacing
     final cardHeight = cardWidth * 1.42; // Maintain aspect ratio
@@ -68,7 +70,7 @@ class _ProductCardState extends State<ProductCard> {
         width: cardWidth,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(r.w(12)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,14 +80,14 @@ class _ProductCardState extends State<ProductCard> {
               height: imageHeight,
               width: cardWidth,
               decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                borderRadius: BorderRadius.all(Radius.circular(r.w(8))),
                 color: Colors.grey[50],
               ),
               child: Stack(
                 children: [
                   // Product Image
                   ClipRRect(
-                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                    borderRadius: BorderRadius.all(Radius.circular(r.w(8))),
                     child: Image.network(
                       widget.imageUrl,
                       height: imageHeight,
@@ -96,10 +98,10 @@ class _ProductCardState extends State<ProductCard> {
                           height: imageHeight,
                           width: cardWidth,
                           color: Colors.grey[200],
-                          child: const Icon(
+                          child: Icon(
                             Icons.image_not_supported,
                             color: Colors.grey,
-                            size: 40,
+                            size: r.w(40),
                           ),
                         );
                       },
@@ -107,8 +109,8 @@ class _ProductCardState extends State<ProductCard> {
                   ),
                   // Heart Icon
                   Positioned(
-                    top: 12,
-                    right: 12,
+                    top: r.h(12),
+                    right: r.w(12),
                     child: GestureDetector(
                       onTap: () {
                         if (widget.productId != null) {
@@ -153,7 +155,7 @@ class _ProductCardState extends State<ProductCard> {
             // Content Container
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(top: 8),
+                padding: EdgeInsets.only(top: r.h(8)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -164,17 +166,17 @@ class _ProductCardState extends State<ProductCard> {
                         AppText.heading(
                           '₹${widget.originalPrice.toInt()}',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: r.sp(14),
                             color: Colors.grey[500],
                             decoration: TextDecoration.lineThrough,
                             decorationColor: Colors.grey[500],
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: r.w(8)),
                         AppText.heading(
                           '₹${widget.discountedPrice.toInt()}',
-                          style: const TextStyle(
-                            fontSize: 16,
+                          style: TextStyle(
+                            fontSize: r.sp(16),
                             fontWeight: FontWeight.bold,
                             color: AppColors.blue,
                           ),
@@ -185,13 +187,13 @@ class _ProductCardState extends State<ProductCard> {
                           children: [
                             SvgPicture.asset(
                               'assets/icons/star.svg',
-                              height: 16,
+                              height: r.w(16),
                             ),
-                            const SizedBox(width: 2),
+                            SizedBox(width: r.w(2)),
                             Text(
                               widget.rating.toString(),
-                              style: const TextStyle(
-                                fontSize: 14,
+                              style: TextStyle(
+                                fontSize: r.sp(14),
                                 fontWeight: FontWeight.w500,
                                 color: Colors.black87,
                               ),
@@ -203,8 +205,8 @@ class _ProductCardState extends State<ProductCard> {
                     // Product Name
                     Text(
                       widget.productName,
-                      style: const TextStyle(
-                        fontSize: 14,
+                      style: TextStyle(
+                        fontSize: r.sp(14),
                         fontWeight: FontWeight.w600,
                         color: Colors.black87,
                       ),

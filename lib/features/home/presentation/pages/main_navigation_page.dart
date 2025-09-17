@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:product_listing_app/core/di/injection_container.dart';
+import 'package:product_listing_app/features/home/presentation/bloc/search_bloc.dart';
+import 'package:product_listing_app/features/home/presentation/bloc/wishlist_bloc.dart';
+import 'package:product_listing_app/features/home/presentation/bloc/banner_bloc.dart';
+import 'package:product_listing_app/features/home/presentation/bloc/product_bloc.dart';
+import 'package:product_listing_app/features/home/presentation/bloc/banner_event.dart';
 import 'package:product_listing_app/features/home/presentation/pages/home_page.dart';
 import 'package:product_listing_app/features/home/presentation/pages/profile_page.dart';
 import 'package:product_listing_app/features/home/presentation/pages/wishlist_page.dart';
@@ -28,14 +35,26 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: IndexedStack(index: _selectedIndex, children: _pages),
-      floatingActionButton: FloatingBottomNavBar(
-        selectedIndex: _selectedIndex,
-        onItemTapped: _onItemTapped,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<SearchBloc>(create: (_) => sl<SearchBloc>()),
+        BlocProvider<WishlistBloc>.value(value: sl<WishlistBloc>()),
+        BlocProvider<BannerBloc>(
+          create: (_) => sl<BannerBloc>()..add(const GetBannersEvent()),
+        ),
+        BlocProvider<ProductBloc>(
+          create: (_) => sl<ProductBloc>()..add(const GetProductsEvent()),
+        ),
+      ],
+      child: Scaffold(
+        backgroundColor: Colors.grey[100],
+        body: IndexedStack(index: _selectedIndex, children: _pages),
+        floatingActionButton: FloatingBottomNavBar(
+          selectedIndex: _selectedIndex,
+          onItemTapped: _onItemTapped,
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

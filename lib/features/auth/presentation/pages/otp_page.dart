@@ -1,16 +1,17 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:product_listing_app/core/constants/app_colors.dart';
+import 'package:product_listing_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:product_listing_app/features/auth/presentation/bloc/auth_event.dart';
+import 'package:product_listing_app/features/auth/presentation/bloc/auth_state.dart';
+import 'package:product_listing_app/features/auth/presentation/pages/name_page.dart';
 import 'package:product_listing_app/features/auth/presentation/widgets/otp_widget.dart';
 import 'package:product_listing_app/features/home/presentation/pages/main_navigation_page.dart';
 import 'package:product_listing_app/features/widgets/app_back_button.dart';
 import 'package:product_listing_app/features/widgets/app_text.dart';
-import 'package:product_listing_app/features/auth/presentation/pages/name_page.dart';
 import 'package:product_listing_app/features/widgets/route_transitions.dart';
-import 'package:product_listing_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:product_listing_app/features/auth/presentation/bloc/auth_event.dart';
-import 'package:product_listing_app/features/auth/presentation/bloc/auth_state.dart';
 
 class OtpPage extends StatefulWidget {
   final String phoneNumber;
@@ -31,11 +32,30 @@ class OtpPage extends StatefulWidget {
 }
 
 class _OtpPageState extends State<OtpPage> {
-  final TextEditingController _otpController = TextEditingController();
+  // Constants
+  static const double _horizontalPadding = 20.0;
+  static const double _backButtonSpacing = 40.0;
+  static const double _titleSpacing = 18.0;
+  static const double _sectionSpacing = 40.0;
+  static const double _otpSpacing = 27.0;
+  static const double _resendSpacing = 30.0;
+  static const int _otpLength = 4;
+  static const int _timerDuration = 120; // 2 minutes
+  static const int _warningThreshold = 10; // Show warning when 10 seconds left
+  static const String _otpTitle = 'OTP VERIFICATION';
+  static const String _otpPrefix = 'OTP is ';
+  static const String _hardcodedOtp = '4749';
+  static const String _otpSentMessage = 'Enter the OTP sent to ';
+  static const String _resendText = "Didn't receive the code? ";
+  static const String _resendButtonText = 'Resend';
+  static const String _otpVerifiedMessage = 'OTP Verified Successfully!';
+  static const String _otpExpiredMessage =
+      'OTP has expired. Please request a new one.';
 
-  // Timer related variables
+  // Controllers and state
+  final TextEditingController _otpController = TextEditingController();
   Timer? _timer;
-  int _remainingSeconds = 120;
+  int _remainingSeconds = _timerDuration;
   bool _isOnOtpPage = true;
 
   @override
@@ -47,7 +67,10 @@ class _OtpPageState extends State<OtpPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Check if we're back on the OTP page (e.g., after popping from another page)
+    _updatePageVisibility();
+  }
+
+  void _updatePageVisibility() {
     if (ModalRoute.of(context)?.isCurrent == true) {
       _isOnOtpPage = true;
     }
@@ -59,179 +82,187 @@ class _OtpPageState extends State<OtpPage> {
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
       body: BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
-          } else if (state is OtpVerified) {
-            _isOnOtpPage = false;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('OTP Verified Successfully!'),
-                backgroundColor: Colors.green,
-              ),
-            );
-            // Existing user: token was already saved on login page (if provided). Go home.
-            if (widget.existingUser) {
-              Navigator.of(context).pushReplacement(
-                slideRightToLeftRoute(const MainNavigationPage()),
-              );
-            } else {
-              // New user -> prompt for name
-              Navigator.of(context).push(
-                slideRightToLeftRoute(
-                  NamePage(phoneNumber: widget.phoneNumber),
-                ),
-              );
-            }
-          } else if (state is TokenSaved) {
-            // After successful token save, go to Home
-            Navigator.of(context).pushReplacement(
-              slideRightToLeftRoute(const MainNavigationPage()),
-            );
-          } else if (state is AuthSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.green,
-              ),
-            );
-            _otpController.clear();
-            _resetTimer();
-          }
-        },
+        listener: _handleAuthStateChanges,
         child: BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) {
-            final isLoading = state is AuthLoading;
-            final errorText = state is AuthError ? state.message : null;
+          builder: (context, state) => _buildBody(state),
+        ),
+      ),
+    );
+  }
 
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const AppBackButton(),
-                    const SizedBox(height: 40),
-                    AppText.heading(
-                      'OTP VERIFICATION',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        AppText.light('Enter the OTP sent to '),
-                        AppText.light(
-                          '${widget.countryCode} ${widget.phoneNumber}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 40),
-                    Row(
-                      children: [
-                        AppText.heading(
-                          'OTP is ',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        AppText.heading(
-                          '4749 ',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.blue,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 40),
+  void _handleAuthStateChanges(BuildContext context, AuthState state) {
+    if (state is AuthError) {
+      _showErrorSnackBar(context, state.message);
+    } else if (state is OtpVerified) {
+      _handleOtpVerified(context);
+    } else if (state is TokenSaved) {
+      _navigateToMainPage(context);
+    } else if (state is AuthSuccess) {
+      _handleAuthSuccess(context, state);
+    }
+  }
 
-                    // OTP Input Widget - Clean and reusable!
-                    Center(
-                      child: OtpInputWidget(
-                        controller: _otpController,
-                        length: 4,
-                        errorText: errorText,
-                        onCompleted: (pin) {
-                          _handleOtpComplete(pin);
-                        },
-                        onChanged: (pin) {
-                          if (errorText != null) {
-                            context.read<AuthBloc>().add(
-                              const ClearErrorEvent(),
-                            );
-                          }
-                        },
-                      ),
-                    ),
+  void _showErrorSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
 
-                    const SizedBox(height: 27),
+  void _handleOtpVerified(BuildContext context) {
+    _isOnOtpPage = false;
+    _showSuccessSnackBar(_otpVerifiedMessage);
 
-                    Align(
-                      alignment: Alignment.center,
-                      child: AppText.light(
-                        _formatTime(_remainingSeconds),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: _remainingSeconds <= 10
-                              ? Colors.red
-                              : Colors.black,
-                          fontWeight: _remainingSeconds <= 10
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ),
+    if (widget.existingUser) {
+      _navigateToMainPage(context);
+    } else {
+      _navigateToNamePage(context);
+    }
+  }
 
-                    // Resend OTP option
-                    Center(
-                      child: TextButton(
-                        onPressed: isLoading ? null : _handleResendOtp,
-                        child: RichText(
-                          text: const TextSpan(
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF5A5A5A),
-                            ),
-                            children: [
-                              TextSpan(text: "Didn't receive the code? "),
-                              TextSpan(
-                                text: 'Resend',
-                                style: TextStyle(color: Color(0xFF00E5A4)),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                  ],
-                ),
+  void _handleAuthSuccess(BuildContext context, AuthSuccess state) {
+    _showSuccessSnackBar(state.message);
+    _otpController.clear();
+    _resetTimer();
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  }
+
+  void _navigateToMainPage(BuildContext context) {
+    Navigator.of(
+      context,
+    ).pushReplacement(slideRightToLeftRoute(const MainNavigationPage()));
+  }
+
+  void _navigateToNamePage(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(slideRightToLeftRoute(NamePage(phoneNumber: widget.phoneNumber)));
+  }
+
+  Widget _buildBody(AuthState state) {
+    final isLoading = state is AuthLoading;
+    final errorText = state is AuthError ? state.message : null;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(_horizontalPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const AppBackButton(),
+            const SizedBox(height: _backButtonSpacing),
+            _buildHeader(),
+            const SizedBox(height: _titleSpacing),
+            _buildPhoneNumberDisplay(),
+            const SizedBox(height: _sectionSpacing),
+            _buildOtpDisplay(),
+            const SizedBox(height: _sectionSpacing),
+            _buildOtpInput(errorText),
+            const SizedBox(height: _otpSpacing),
+            _buildTimerDisplay(),
+            _buildResendButton(isLoading),
+            const SizedBox(height: _resendSpacing),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return AppText.heading(
+      _otpTitle,
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    );
+  }
+
+  Widget _buildPhoneNumberDisplay() {
+    return Row(
+      children: [
+        AppText.light(_otpSentMessage),
+        AppText.light(
+          '${widget.countryCode} ${widget.phoneNumber}',
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOtpDisplay() {
+    return Row(
+      children: [
+        AppText.heading(
+          _otpPrefix,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        ),
+        AppText.heading(
+          '$_hardcodedOtp ',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.blue,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOtpInput(String? errorText) {
+    return Center(
+      child: OtpInputWidget(
+        controller: _otpController,
+        length: _otpLength,
+        errorText: errorText,
+        onCompleted: _handleOtpComplete,
+        onChanged: (pin) => _handleOtpChange(pin, errorText),
+      ),
+    );
+  }
+
+  Widget _buildTimerDisplay() {
+    final isWarning = _remainingSeconds <= _warningThreshold;
+
+    return Align(
+      alignment: Alignment.center,
+      child: AppText.light(
+        _formatTime(_remainingSeconds),
+        style: TextStyle(
+          fontSize: 14,
+          color: isWarning ? Colors.red : Colors.black,
+          fontWeight: isWarning ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResendButton(bool isLoading) {
+    return Center(
+      child: TextButton(
+        onPressed: isLoading ? null : _handleResendOtp,
+        child: RichText(
+          text: const TextSpan(
+            style: TextStyle(fontSize: 14, color: Color(0xFF5A5A5A)),
+            children: [
+              TextSpan(text: _resendText),
+              TextSpan(
+                text: _resendButtonText,
+                style: TextStyle(color: Color(0xFF00E5A4)),
               ),
-            );
-          },
+            ],
+          ),
         ),
       ),
     );
   }
 
   void _handleOtpComplete(String pin) {
-    print('OTP Entered: $pin');
-    // Use Bloc to verify OTP
     context.read<AuthBloc>().add(
       VerifyOtpEvent(
         phoneNumber: widget.phoneNumber,
@@ -241,8 +272,13 @@ class _OtpPageState extends State<OtpPage> {
     );
   }
 
+  void _handleOtpChange(String pin, String? errorText) {
+    if (errorText != null) {
+      context.read<AuthBloc>().add(const ClearErrorEvent());
+    }
+  }
+
   void _handleResendOtp() {
-    // Use Bloc to resend OTP
     context.read<AuthBloc>().add(
       ResendOtpEvent(
         phoneNumber: widget.phoneNumber,
@@ -252,16 +288,18 @@ class _OtpPageState extends State<OtpPage> {
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted && _isOnOtpPage) {
-        setState(() {
-          if (_remainingSeconds > 0) {
-            _remainingSeconds--;
-          } else {
-            _timer?.cancel();
-            _showTimerExpiredSnackbar();
-          }
-        });
+    _timer = Timer.periodic(const Duration(seconds: 1), _updateTimer);
+  }
+
+  void _updateTimer(Timer timer) {
+    if (!mounted || !_isOnOtpPage) return;
+
+    setState(() {
+      if (_remainingSeconds > 0) {
+        _remainingSeconds--;
+      } else {
+        _timer?.cancel();
+        _showTimerExpiredSnackbar();
       }
     });
   }
@@ -269,27 +307,27 @@ class _OtpPageState extends State<OtpPage> {
   void _resetTimer() {
     _timer?.cancel();
     setState(() {
-      _remainingSeconds = 120;
+      _remainingSeconds = _timerDuration;
     });
     _startTimer();
   }
 
   String _formatTime(int seconds) {
-    int minutes = seconds ~/ 60;
-    int remainingSeconds = seconds % 60;
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')} Sec';
   }
 
   void _showTimerExpiredSnackbar() {
-    if (mounted && _isOnOtpPage) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('OTP has expired. Please request a new one.'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
-    }
+    if (!mounted || !_isOnOtpPage) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(_otpExpiredMessage),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 
   @override

@@ -80,3 +80,11 @@ class SaveTokenEvent extends AuthEvent {
   @override
   List<Object?> get props => [token];
 }
+
+class CheckAuthStatusEvent extends AuthEvent {
+  const CheckAuthStatusEvent();
+}
+
+class DeleteTokenEvent extends AuthEvent {
+  const DeleteTokenEvent();
+}

@@ -71,3 +71,16 @@ class TokenSaved extends AuthState {
   @override
   List<Object?> get props => [token];
 }
+
+class AuthAuthenticated extends AuthState {
+  final String token;
+
+  const AuthAuthenticated({required this.token});
+
+  @override
+  List<Object?> get props => [token];
+}
+
+class AuthUnauthenticated extends AuthState {
+  const AuthUnauthenticated();
+}

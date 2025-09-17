@@ -5,8 +5,11 @@ import 'package:product_listing_app/features/auth/domain/usecases/resend_otp_use
 import 'package:product_listing_app/features/auth/domain/usecases/verify_user_usecase.dart';
 import 'package:product_listing_app/features/auth/domain/usecases/login_register_usecase.dart';
 import 'package:product_listing_app/features/auth/domain/usecases/save_token_usecase.dart';
+import 'package:product_listing_app/features/auth/domain/usecases/get_token_usecase.dart';
+import 'package:product_listing_app/features/auth/domain/usecases/delete_token_usecase.dart';
 import 'package:product_listing_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:product_listing_app/features/auth/presentation/bloc/auth_state.dart';
+import 'package:product_listing_app/core/usecases/usecase.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SendOtpUseCase sendOtpUseCase;
@@ -15,6 +18,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final VerifyUserUseCase verifyUserUseCase;
   final LoginRegisterUseCase loginRegisterUseCase;
   final SaveTokenUseCase saveTokenUseCase;
+  final GetTokenUseCase getTokenUseCase;
+  final DeleteTokenUseCase deleteTokenUseCase;
 
   AuthBloc({
     required this.sendOtpUseCase,
@@ -23,6 +28,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.verifyUserUseCase,
     required this.loginRegisterUseCase,
     required this.saveTokenUseCase,
+    required this.getTokenUseCase,
+    required this.deleteTokenUseCase,
   }) : super(const AuthInitial()) {
     on<SendOtpEvent>(_onSendOtp);
     on<VerifyOtpEvent>(_onVerifyOtp);
@@ -32,6 +39,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<VerifyUserEvent>(_onVerifyUser);
     on<LoginRegisterEvent>(_onLoginRegister);
     on<SaveTokenEvent>(_onSaveToken);
+    on<CheckAuthStatusEvent>(_onCheckAuthStatus);
+    on<DeleteTokenEvent>(_onDeleteToken);
   }
 
   Future<void> _onSendOtp(SendOtpEvent event, Emitter<AuthState> emit) async {
@@ -90,7 +99,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
-    emit(const AuthInitial());
+    await deleteTokenUseCase(NoParams());
+    emit(const AuthUnauthenticated());
   }
 
   void _onClearError(ClearErrorEvent event, Emitter<AuthState> emit) {
@@ -148,6 +158,33 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     saved.fold(
       (failure) => emit(AuthError(message: failure.message)),
       (_) => emit(TokenSaved(token: event.token)),
+    );
+  }
+
+  Future<void> _onCheckAuthStatus(
+    CheckAuthStatusEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+    final result = await getTokenUseCase(NoParams());
+    result.fold((failure) => emit(const AuthUnauthenticated()), (token) {
+      if (token != null && token.isNotEmpty) {
+        emit(AuthAuthenticated(token: token));
+      } else {
+        emit(const AuthUnauthenticated());
+      }
+    });
+  }
+
+  Future<void> _onDeleteToken(
+    DeleteTokenEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+    final result = await deleteTokenUseCase(NoParams());
+    result.fold(
+      (failure) => emit(AuthError(message: failure.message)),
+      (_) => emit(const AuthUnauthenticated()),
     );
   }
 }

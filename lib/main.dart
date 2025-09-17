@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:product_listing_app/core/di/injection_container.dart';
 import 'package:product_listing_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:product_listing_app/features/auth/presentation/pages/login_page.dart';
+import 'package:product_listing_app/features/auth/presentation/bloc/auth_event.dart';
+import 'package:product_listing_app/features/home/presentation/pages/main_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,15 +14,19 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<AuthBloc>(),
+      create: (context) {
+        final authBloc = sl<AuthBloc>();
+        // Check auth status on app start
+        authBloc.add(const CheckAuthStatusEvent());
+        return authBloc;
+      },
       child: MaterialApp(
         title: 'Product Listing App',
         theme: ThemeData(fontFamily: 'Oxygen'),
-        home: const LoginPage(),
+        home: const MainPage(),
         debugShowCheckedModeBanner: false,
       ),
     );

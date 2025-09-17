@@ -160,4 +160,24 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(UnknownFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, String?>> getToken() async {
+    try {
+      final token = await localDataSource.getToken();
+      return Right(token);
+    } catch (e) {
+      return Left(UnknownFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteToken() async {
+    try {
+      await localDataSource.deleteToken();
+      return const Right(null);
+    } catch (e) {
+      return Left(UnknownFailure(message: e.toString()));
+    }
+  }
 }
