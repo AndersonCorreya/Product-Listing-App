@@ -8,6 +8,7 @@ class DynamicCarousel extends StatefulWidget {
   final bool autoPlay;
   final BorderRadius? borderRadius;
   final EdgeInsets? margin;
+  final bool isNetworkImage;
 
   const DynamicCarousel({
     Key? key,
@@ -17,6 +18,7 @@ class DynamicCarousel extends StatefulWidget {
     this.autoPlay = true,
     this.borderRadius,
     this.margin,
+    this.isNetworkImage = false,
   }) : super(key: key);
 
   @override
@@ -89,104 +91,105 @@ class _DynamicCarouselState extends State<DynamicCarousel> {
     }
 
     return Container(
-      height: widget.height,
       margin: widget.margin,
-      child: Stack(
+      child: Column(
         children: [
           // Carousel
-          ClipRRect(
-            borderRadius: widget.borderRadius ?? BorderRadius.circular(12),
-            child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: _onPageChanged,
-              itemCount: widget.images.length,
-              itemBuilder: (context, index) {
-                return Container(
-                  width: double.infinity,
-                  height: widget.height,
-                  child: Image.asset(
-                    widget.images[index],
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey[300],
-                        child: const Icon(
-                          Icons.image_not_supported,
-                          color: Colors.grey,
-                          size: 40,
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
+          Container(
+            height: widget.height,
+            child: ClipRRect(
+              borderRadius: widget.borderRadius ?? BorderRadius.circular(12),
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                itemCount: widget.images.length,
+                itemBuilder: (context, index) {
+                  return Container(
+                    width: double.infinity,
+                    height: widget.height,
+                    child: widget.isNetworkImage
+                        ? Image.network(
+                            widget.images[index],
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                color: Colors.grey[200],
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    value:
+                                        loadingProgress.expectedTotalBytes !=
+                                            null
+                                        ? loadingProgress
+                                                  .cumulativeBytesLoaded /
+                                              loadingProgress
+                                                  .expectedTotalBytes!
+                                        : null,
+                                    strokeWidth: 2,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.grey,
+                                  size: 40,
+                                ),
+                              );
+                            },
+                          )
+                        : Image.asset(
+                            widget.images[index],
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.grey,
+                                  size: 40,
+                                ),
+                              );
+                            },
+                          ),
+                  );
+                },
+              ),
             ),
           ),
 
           // Dots Indicator
           if (widget.images.length > 1)
-            Positioned(
-              bottom: 12,
-              left: 0,
-              right: 0,
+            Container(
+              padding: const EdgeInsets.only(top: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
                   widget.images.length,
                   (index) => Container(
-                    width: 8,
+                    width: _currentIndex == index ? 24 : 8,
                     height: 8,
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                      shape: _currentIndex == index
+                          ? BoxShape.rectangle
+                          : BoxShape.circle,
+                      borderRadius: _currentIndex == index
+                          ? BorderRadius.circular(4)
+                          : null,
                       color: _currentIndex == index
                           ? Colors.black
-                          : Colors.white.withOpacity(0.4),
+                          : Colors.grey.withOpacity(0.4),
                     ),
                   ),
                 ),
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-// Usage Example
-class CarouselExample extends StatelessWidget {
-  const CarouselExample({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final List<String> sampleImages = [
-      'assets/images/banner1.jpg',
-      'assets/images/banner2.jpg',
-      'assets/images/banner3.jpg',
-    ];
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Dynamic Carousel')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Default carousel
-            DynamicCarousel(images: sampleImages),
-
-            const SizedBox(height: 20),
-
-            // Customized carousel
-            DynamicCarousel(
-              images: sampleImages,
-              height: 138,
-              autoPlay: true,
-              autoPlayDuration: const Duration(seconds: 4),
-              borderRadius: BorderRadius.circular(16),
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-            ),
-          ],
-        ),
       ),
     );
   }

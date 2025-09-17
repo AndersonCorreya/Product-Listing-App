@@ -45,6 +45,7 @@ class WishlistPage extends StatelessWidget {
               : 0.0;
           final String name = (product['name'] ?? '') as String;
           return ProductCard(
+            key: ValueKey<int>(product['id'] as int? ?? index),
             imageUrl: imageUrl,
             originalPrice: mrp,
             discountedPrice: salePrice,

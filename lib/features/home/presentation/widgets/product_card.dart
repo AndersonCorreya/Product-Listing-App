@@ -119,27 +119,31 @@ class _ProductCardState extends State<ProductCard> {
                               product: widget.fullProduct,
                             ),
                           );
-                          // Ask global wishlist to refresh immediately
-                          context.read<WishlistBloc>().add(
-                            const WishlistFetchEvent(),
-                          );
                         }
                         setState(() {
                           _isFavorite = !_isFavorite;
                         });
                       },
-                      child: SvgPicture.asset(
-                        _isFavorite
-                            ? 'assets/icons/filled_heart.svg'
-                            : 'assets/icons/empty_heart.svg',
-                        height: 24,
-                        width: 24,
-                        colorFilter: widget.heartIconColor != null
-                            ? ColorFilter.mode(
-                                widget.heartIconColor!,
-                                BlendMode.srcIn,
-                              )
-                            : null,
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        switchInCurve: Curves.easeOutBack,
+                        switchOutCurve: Curves.easeIn,
+                        transitionBuilder: (child, animation) =>
+                            ScaleTransition(scale: animation, child: child),
+                        child: SvgPicture.asset(
+                          _isFavorite
+                              ? 'assets/icons/filled_heart.svg'
+                              : 'assets/icons/empty_heart.svg',
+                          key: ValueKey<bool>(_isFavorite),
+                          height: 24,
+                          width: 24,
+                          colorFilter: widget.heartIconColor != null
+                              ? ColorFilter.mode(
+                                  widget.heartIconColor!,
+                                  BlendMode.srcIn,
+                                )
+                              : null,
+                        ),
                       ),
                     ),
                   ),

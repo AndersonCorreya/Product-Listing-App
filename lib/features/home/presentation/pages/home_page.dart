@@ -10,6 +10,9 @@ import 'package:product_listing_app/core/di/injection_container.dart';
 import 'package:product_listing_app/features/home/presentation/bloc/search_bloc.dart';
 import 'package:product_listing_app/features/home/presentation/pages/search_page.dart';
 import 'package:product_listing_app/features/home/presentation/bloc/wishlist_bloc.dart';
+import 'package:product_listing_app/features/home/presentation/bloc/banner_bloc.dart';
+import 'package:product_listing_app/features/home/presentation/bloc/banner_event.dart';
+import 'package:product_listing_app/features/home/presentation/bloc/banner_state.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -98,6 +101,7 @@ class HomePage extends StatelessWidget {
               : 0.0;
           final String name = (product['name'] ?? '') as String;
           return ProductCard(
+            key: ValueKey<int>(product['id'] as int? ?? index),
             imageUrl: imageUrl,
             originalPrice: mrp,
             discountedPrice: salePrice,
@@ -152,6 +156,9 @@ class HomePage extends StatelessWidget {
               providers: [
                 BlocProvider<SearchBloc>(create: (_) => sl<SearchBloc>()),
                 BlocProvider<WishlistBloc>.value(value: sl<WishlistBloc>()),
+                BlocProvider<BannerBloc>(
+                  create: (_) => sl<BannerBloc>()..add(const GetBannersEvent()),
+                ),
               ],
               child: CustomScrollView(
                 slivers: [
@@ -187,21 +194,98 @@ class HomePage extends StatelessWidget {
                   ),
                   // Carousel Section
                   SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 16),
-                          DynamicCarousel(
-                            images: [
-                              'assets/images/image_2.jpg',
-                              'assets/images/image_1.jpg',
-                              'assets/images/image_1.jpg',
-                            ],
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: BlocBuilder<BannerBloc, BannerState>(
+                            builder: (context, state) {
+                              if (state is BannerLoading) {
+                                return Container(
+                                  height: 130,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              }
+
+                              if (state is BannerError) {
+                                return Container(
+                                  height: 150,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.error_outline,
+                                          color: Colors.red,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Failed to load banners',
+                                          style: const TextStyle(
+                                            color: Colors.red,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              if (state is BannerLoaded) {
+                                final bannerImages = state.banners
+                                    .map((banner) => banner.image)
+                                    .toList();
+
+                                // Ensure we have at least 3 images by duplicating if needed
+                                List<String> carouselImages = [...bannerImages];
+                                while (carouselImages.length < 3) {
+                                  carouselImages.addAll(bannerImages);
+                                }
+                                // Take only the first 3 images
+                                carouselImages = carouselImages
+                                    .take(3)
+                                    .toList();
+
+                                return DynamicCarousel(
+                                  images: carouselImages,
+                                  isNetworkImage: true,
+                                  height: 138,
+                                  autoPlay: true,
+                                  autoPlayDuration: const Duration(seconds: 4),
+                                );
+                              }
+
+                              // Default/Initial state
+                              return Container(
+                                height: 138,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Center(
+                                  child: Text(
+                                    'No banners available',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
                     ),
                   ),
                   // Popular Products Section

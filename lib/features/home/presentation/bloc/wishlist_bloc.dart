@@ -10,12 +10,18 @@ class WishlistBloc extends Bloc<WishlistEvent, WishlistState> {
 
   WishlistBloc({required this.repository}) : super(const WishlistInitial()) {
     on<WishlistFetchEvent>((event, emit) async {
-      emit(const WishlistLoading());
+      final bool hasExisting = state is WishlistLoaded;
+      if (!hasExisting) {
+        emit(const WishlistLoading());
+      }
       try {
         final items = await repository.fetchWishlist();
         emit(WishlistLoaded(items));
       } catch (e) {
-        emit(WishlistError(e.toString()));
+        // If we had items, keep showing them; otherwise surface error
+        if (!hasExisting) {
+          emit(WishlistError(e.toString()));
+        }
       }
     });
 
@@ -25,7 +31,7 @@ class WishlistBloc extends Bloc<WishlistEvent, WishlistState> {
           ? List<Map<String, dynamic>>.from((state as WishlistLoaded).items)
           : <Map<String, dynamic>>[];
 
-      // Optimistic update
+      // Optimistic update (do not dispatch parallel fetches from UI)
       final int idx = current.indexWhere((p) => p['id'] == event.productId);
       List<Map<String, dynamic>> before = List<Map<String, dynamic>>.from(
         current,
