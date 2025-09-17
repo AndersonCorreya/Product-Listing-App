@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:product_listing_app/features/auth/data/datasources/auth_local_datasource.dart';
-import 'package:flutter/foundation.dart';
 
 class WishlistRepository {
   static const String _endpoint =
@@ -17,12 +16,6 @@ class WishlistRepository {
     final headers = <String, String>{'Accept': 'application/json'};
     if (token != null && token.isNotEmpty) {
       headers['Authorization'] = 'Bearer $token';
-      if (kDebugMode) {
-        // Debug-print the JWT for verification
-        // WARNING: Do not keep this in production builds
-        // ignore: avoid_print
-        print('Wishlist JWT (Bearer): $token');
-      }
     }
     if (json) {
       headers['Content-Type'] = 'application/json';
@@ -33,17 +26,7 @@ class WishlistRepository {
   Future<List<Map<String, dynamic>>> fetchWishlist() async {
     final uri = Uri.parse(_wishlistListEndpoint);
     final headers = await _buildAuthHeaders();
-    if (kDebugMode) {
-      // ignore: avoid_print
-      print(
-        'Fetch wishlist headers: ${headers.keys.contains('Authorization') ? 'Authorization present' : 'Authorization MISSING'}',
-      );
-    }
     final response = await http.get(uri, headers: headers);
-    if (kDebugMode) {
-      // ignore: avoid_print
-      print('Fetch wishlist (GET) -> ${response.statusCode}: ${response.body}');
-    }
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final List<dynamic> decoded = json.decode(response.body) as List<dynamic>;
       return decoded.cast<Map<String, dynamic>>();
@@ -62,12 +45,6 @@ class WishlistRepository {
       headers: await _buildAuthHeaders(json: true),
       body: jsonEncode(<String, dynamic>{'product_id': productId}),
     );
-    if (kDebugMode) {
-      // ignore: avoid_print
-      print(
-        'Toggle wishlist (id=$productId) -> ${response.statusCode}: ${response.body}',
-      );
-    }
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return;
     }
