@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         return authBloc;
       },
       child: MaterialApp(
-        title: 'Product Listing App',
+        title: 'Product List App',
         theme: ThemeData(fontFamily: 'Oxygen'),
         home: const MainPage(),
         debugShowCheckedModeBanner: false,
