@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
+import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 import 'package:pinput/pinput.dart';
 import 'package:product_listing_app/core/constants/app_colors.dart';
 
@@ -47,6 +48,20 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
       decoration: BoxDecoration(
         color: Colors.grey[100], // Light grey background
         borderRadius: BorderRadius.circular(10), // Rounded corners
+        boxShadow: const [
+          BoxShadow(
+            offset: Offset(-2, -2),
+            blurRadius: 4,
+            color: Colors.white,
+            inset: true,
+          ),
+          BoxShadow(
+            offset: Offset(2, 2),
+            blurRadius: 4,
+            color: Color(0xFFBEBEBE),
+            inset: true,
+          ),
+        ],
       ),
     );
 
@@ -55,20 +70,18 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
       decoration: BoxDecoration(
         color: Colors.grey[100],
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          // Stronger outer shadow for focus
+        boxShadow: const [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.25),
-            offset: const Offset(2, 2),
-            blurRadius: 4,
-            spreadRadius: 0,
+            offset: Offset(-3, -3),
+            blurRadius: 6,
+            color: Colors.white,
+            inset: true,
           ),
-          // Inner shadow effect
           BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            offset: const Offset(-1, -1),
-            blurRadius: 3,
-            spreadRadius: -1,
+            offset: Offset(3, 3),
+            blurRadius: 6,
+            color: Color(0xFFBEBEBE),
+            inset: true,
           ),
         ],
       ),
@@ -77,21 +90,20 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
     // Theme for submitted field
     final submittedPinTheme = defaultPinTheme.copyWith(
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: Color(0xFFF6F6F6),
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          // Same as default for consistency
+        boxShadow: const [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.15),
-            offset: const Offset(2, 2),
-            blurRadius: 3,
-            spreadRadius: 0,
+            offset: Offset(-2, -2),
+            blurRadius: 4,
+            color: Colors.white,
+            inset: true,
           ),
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            offset: const Offset(-1, -1),
-            blurRadius: 2,
-            spreadRadius: -1,
+            offset: Offset(2, 2),
+            blurRadius: 4,
+            color: Color(0xFFBEBEBE),
+            inset: true,
           ),
         ],
       ),
@@ -102,19 +114,18 @@ class _OtpInputWidgetState extends State<OtpInputWidget> {
       decoration: BoxDecoration(
         color: Colors.red[50],
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          // Error state with same grey shadow
+        boxShadow: const [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.15),
-            offset: const Offset(2, 2),
-            blurRadius: 3,
-            spreadRadius: 0,
+            offset: Offset(-2, -2),
+            blurRadius: 4,
+            color: Colors.white,
+            inset: true,
           ),
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            offset: const Offset(-1, -1),
-            blurRadius: 2,
-            spreadRadius: -1,
+            offset: Offset(2, 2),
+            blurRadius: 4,
+            color: Color(0xFFBEBEBE),
+            inset: true,
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class BottomBorderTextField extends StatelessWidget {
   final String? hintText;
@@ -14,6 +15,9 @@ class BottomBorderTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final FocusNode? focusNode;
   final double? width;
+  final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextCapitalization textCapitalization;
   const BottomBorderTextField({
     Key? key,
     this.hintText,
@@ -29,6 +33,9 @@ class BottomBorderTextField extends StatelessWidget {
     this.validator,
     this.focusNode,
     this.width,
+    this.maxLength,
+    this.inputFormatters,
+    this.textCapitalization = TextCapitalization.none,
   }) : super(key: key);
 
   @override
@@ -46,6 +53,9 @@ class BottomBorderTextField extends StatelessWidget {
         maxLines: maxLines,
         validator: validator,
         focusNode: focusNode,
+        maxLength: maxLength,
+        inputFormatters: inputFormatters,
+        textCapitalization: textCapitalization,
         style: const TextStyle(fontSize: 16, color: Colors.black87),
         decoration: InputDecoration(
           hintText: hintText,
@@ -66,7 +76,7 @@ class BottomBorderTextField extends StatelessWidget {
             borderSide: BorderSide(color: Color(0xFFE0E0E0), width: 1.0),
           ),
           focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF2196F3), width: 2.0),
+            borderSide: BorderSide(color: Colors.black, width: 2.0),
           ),
           disabledBorder: const UnderlineInputBorder(
             borderSide: BorderSide(color: Color(0xFFBDBDBD), width: 1.0),
