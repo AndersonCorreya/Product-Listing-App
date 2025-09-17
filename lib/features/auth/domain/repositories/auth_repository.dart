@@ -22,7 +22,9 @@ abstract class AuthRepository {
 
   Future<Either<Failure, void>> logout();
 
-  Future<Either<Failure, bool>> verifyUser({required String phoneNumber});
+  Future<Either<Failure, (bool exists, String? token)>> verifyUser({
+    required String phoneNumber,
+  });
 
   Future<Either<Failure, String>> loginRegister({
     required String phoneNumber,

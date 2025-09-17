@@ -53,6 +53,7 @@ class CustomSearchField extends StatelessWidget {
         controller: controller,
         onChanged: onChanged,
         onSubmitted: onSubmitted,
+        textCapitalization: TextCapitalization.words,
         onTap: onTap,
         enabled: enabled,
         style:

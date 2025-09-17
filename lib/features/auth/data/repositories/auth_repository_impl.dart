@@ -110,14 +110,14 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, bool>> verifyUser({
+  Future<Either<Failure, (bool exists, String? token)>> verifyUser({
     required String phoneNumber,
   }) async {
     try {
-      final exists = await remoteDataSource.verifyUser(
+      final existsWithToken = await remoteDataSource.verifyUser(
         phoneNumber: phoneNumber,
       );
-      return Right(exists);
+      return Right(existsWithToken);
     } on ValidationFailure catch (e) {
       return Left(e);
     } on NetworkFailure catch (e) {

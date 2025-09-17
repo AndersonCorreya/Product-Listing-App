@@ -55,11 +55,12 @@ class AuthSuccess extends AuthState {
 
 class UserExistsChecked extends AuthState {
   final bool exists;
+  final String? token;
 
-  const UserExistsChecked({required this.exists});
+  const UserExistsChecked({required this.exists, this.token});
 
   @override
-  List<Object?> get props => [exists];
+  List<Object?> get props => [exists, token];
 }
 
 class TokenSaved extends AuthState {

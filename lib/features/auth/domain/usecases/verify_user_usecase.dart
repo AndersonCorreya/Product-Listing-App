@@ -3,13 +3,16 @@ import 'package:product_listing_app/core/error/failures.dart';
 import 'package:product_listing_app/core/usecases/usecase.dart';
 import 'package:product_listing_app/features/auth/domain/repositories/auth_repository.dart';
 
-class VerifyUserUseCase implements UseCase<bool, VerifyUserParams> {
+class VerifyUserUseCase
+    implements UseCase<(bool exists, String? token), VerifyUserParams> {
   final AuthRepository repository;
 
   VerifyUserUseCase(this.repository);
 
   @override
-  Future<Either<Failure, bool>> call(VerifyUserParams params) async {
+  Future<Either<Failure, (bool exists, String? token)>> call(
+    VerifyUserParams params,
+  ) async {
     return repository.verifyUser(phoneNumber: params.phoneNumber);
   }
 }

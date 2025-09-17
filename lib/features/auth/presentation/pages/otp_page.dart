@@ -5,7 +5,6 @@ import 'package:product_listing_app/core/constants/app_colors.dart';
 import 'package:product_listing_app/features/auth/presentation/widgets/otp_widget.dart';
 import 'package:product_listing_app/features/home/presentation/pages/main_navigation_page.dart';
 import 'package:product_listing_app/features/widgets/app_back_button.dart';
-import 'package:product_listing_app/features/widgets/app_button.dart';
 import 'package:product_listing_app/features/widgets/app_text.dart';
 import 'package:product_listing_app/features/auth/presentation/pages/name_page.dart';
 import 'package:product_listing_app/features/widgets/route_transitions.dart';
@@ -16,11 +15,15 @@ import 'package:product_listing_app/features/auth/presentation/bloc/auth_state.d
 class OtpPage extends StatefulWidget {
   final String phoneNumber;
   final String countryCode;
+  final bool existingUser;
+  final String? preVerifiedToken;
 
   const OtpPage({
     super.key,
     required this.phoneNumber,
     required this.countryCode,
+    required this.existingUser,
+    this.preVerifiedToken,
   });
 
   @override
@@ -72,18 +75,10 @@ class _OtpPageState extends State<OtpPage> {
                 backgroundColor: Colors.green,
               ),
             );
-            // After OTP verification, check if user exists by phone number
-            context.read<AuthBloc>().add(
-              VerifyUserEvent(phoneNumber: widget.phoneNumber),
-            );
-          } else if (state is UserExistsChecked) {
-            if (state.exists) {
-              // Existing user -> proceed to login/register without name
-              context.read<AuthBloc>().add(
-                LoginRegisterEvent(
-                  phoneNumber: widget.phoneNumber,
-                  firstName: '',
-                ),
+            // Existing user: token was already saved on login page (if provided). Go home.
+            if (widget.existingUser) {
+              Navigator.of(context).pushReplacement(
+                slideRightToLeftRoute(const MainNavigationPage()),
               );
             } else {
               // New user -> prompt for name
@@ -224,21 +219,6 @@ class _OtpPageState extends State<OtpPage> {
                       ),
                     ),
                     const SizedBox(height: 30),
-                    AppButton(
-                      type: AppButtonType.filled,
-                      expand: true,
-                      label: 'Submit',
-                      onPressed: isLoading
-                          ? null
-                          : () {
-                              _isOnOtpPage = false;
-                              Navigator.of(
-                                context,
-                              ).push(slideRightToLeftRoute(const NamePage()));
-                            },
-                      backgroundColor: AppColors.blue,
-                      borderRadius: 10,
-                    ),
                   ],
                 ),
               ),

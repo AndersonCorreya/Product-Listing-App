@@ -31,6 +31,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ClearErrorEvent>(_onClearError);
     on<VerifyUserEvent>(_onVerifyUser);
     on<LoginRegisterEvent>(_onLoginRegister);
+    on<SaveTokenEvent>(_onSaveToken);
   }
 
   Future<void> _onSendOtp(SendOtpEvent event, Emitter<AuthState> emit) async {
@@ -106,7 +107,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
     result.fold(
       (failure) => emit(AuthError(message: failure.message)),
-      (exists) => emit(UserExistsChecked(exists: exists)),
+      (existsWithToken) => emit(
+        UserExistsChecked(
+          exists: existsWithToken.$1,
+          token: existsWithToken.$2,
+        ),
+      ),
     );
   }
 
@@ -130,6 +136,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           (_) => emit(TokenSaved(token: token)),
         );
       },
+    );
+  }
+
+  Future<void> _onSaveToken(
+    SaveTokenEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+    final saved = await saveTokenUseCase(event.token);
+    saved.fold(
+      (failure) => emit(AuthError(message: failure.message)),
+      (_) => emit(TokenSaved(token: event.token)),
     );
   }
 }

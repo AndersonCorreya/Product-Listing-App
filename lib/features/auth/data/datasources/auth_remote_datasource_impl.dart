@@ -69,7 +69,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<bool> verifyUser({required String phoneNumber}) async {
+  Future<(bool exists, String? token)> verifyUser({
+    required String phoneNumber,
+  }) async {
     // POST /verify/ with phone_number
     try {
       final uri = Uri.parse('$_baseUrl/verify/');
@@ -79,15 +81,41 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        final Map<String, dynamic> body = jsonDecode(response.body);
-        // Expect backend indicates existence, e.g., { "exists": true/false }
-        final exists =
-            (body['exists'] == true) ||
-            (body['is_exist'] == true) ||
-            (body['user_exists'] == true) ||
-            (body['status'] == 'exists') ||
-            (body['status'] == 'existing_user');
-        return exists;
+        final dynamic decoded = jsonDecode(response.body);
+
+        bool exists = false;
+        String? token;
+
+        if (decoded is bool) {
+          exists = decoded;
+        } else if (decoded is String) {
+          final lower = decoded.toLowerCase().trim();
+          exists = lower == 'true' || lower == '1' || lower == 'yes';
+        } else if (decoded is Map<String, dynamic>) {
+          final Map<String, dynamic> body = decoded;
+          exists = (body['user'] == true);
+          dynamic tokenRaw =
+              body['jwt_key'] ?? body['jwt'] ?? body['token'] ?? body['access'];
+          if (tokenRaw == null && body['data'] is Map<String, dynamic>) {
+            final data = body['data'] as Map<String, dynamic>;
+            tokenRaw =
+                data['jwt_key'] ??
+                data['jwt'] ??
+                data['token'] ??
+                data['access'];
+          }
+          if (tokenRaw is String) {
+            token = tokenRaw;
+          } else if (tokenRaw is Map<String, dynamic>) {
+            token =
+                tokenRaw['jwt_key'] as String? ??
+                tokenRaw['jwt'] as String? ??
+                tokenRaw['token'] as String? ??
+                tokenRaw['access'] as String?;
+          }
+        }
+
+        return (exists, token);
       }
       throw ServerFailure(
         message: 'Verify user failed',

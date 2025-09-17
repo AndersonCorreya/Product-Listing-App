@@ -24,6 +24,10 @@ class _LoginPageState extends State<LoginPage> {
   CountryCode? _selectedCountryCode;
   final TextEditingController _phoneController = TextEditingController();
 
+  // Store verification result
+  bool? _userExists;
+  String? _preVerifiedToken;
+
   @override
   void initState() {
     super.initState();
@@ -54,13 +58,33 @@ class _LoginPageState extends State<LoginPage> {
                 backgroundColor: Colors.red,
               ),
             );
+          } else if (state is UserExistsChecked) {
+            // Store verification result and send OTP
+            setState(() {
+              _userExists = state.exists;
+              _preVerifiedToken = state.token;
+            });
+            // Persist token immediately for existing users (no login-register)
+            if (state.exists &&
+                (state.token != null && state.token!.isNotEmpty)) {
+              context.read<AuthBloc>().add(SaveTokenEvent(state.token!));
+            }
+            context.read<AuthBloc>().add(
+              SendOtpEvent(
+                phoneNumber: _phoneController.text,
+                countryCode: _selectedCountryCode?.dialCode ?? '+91',
+              ),
+            );
           } else if (state is OtpSent) {
-            // Navigate to OTP page with phone number and country code
+            // Navigate to OTP page with stored verification info
             Navigator.of(context).push(
               slideRightToLeftRoute(
                 OtpPage(
                   phoneNumber: _phoneController.text,
                   countryCode: _selectedCountryCode?.dialCode ?? '+91',
+                  existingUser:
+                      _userExists ?? false, // Default to false if null
+                  preVerifiedToken: _preVerifiedToken,
                 ),
               ),
             );
@@ -179,11 +203,10 @@ class _LoginPageState extends State<LoginPage> {
                               return;
                             }
 
+                            // First verify user, then send OTP
                             context.read<AuthBloc>().add(
-                              SendOtpEvent(
+                              VerifyUserEvent(
                                 phoneNumber: _phoneController.text,
-                                countryCode:
-                                    _selectedCountryCode?.dialCode ?? '+91',
                               ),
                             );
                           },

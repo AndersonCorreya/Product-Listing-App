@@ -71,3 +71,12 @@ class LoginRegisterEvent extends AuthEvent {
   @override
   List<Object?> get props => [phoneNumber, firstName];
 }
+
+class SaveTokenEvent extends AuthEvent {
+  final String token;
+
+  const SaveTokenEvent(this.token);
+
+  @override
+  List<Object?> get props => [token];
+}

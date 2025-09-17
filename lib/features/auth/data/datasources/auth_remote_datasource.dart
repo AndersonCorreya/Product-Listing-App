@@ -18,7 +18,9 @@ abstract class AuthRemoteDataSource {
     required String countryCode,
   });
 
-  Future<bool> verifyUser({required String phoneNumber});
+  Future<(bool exists, String? token)> verifyUser({
+    required String phoneNumber,
+  });
 
   Future<String> loginRegister({
     required String phoneNumber,
