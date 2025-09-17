@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:product_listing_app/core/constants/app_colors.dart';
 import 'package:product_listing_app/features/widgets/app_text.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:product_listing_app/core/di/injection_container.dart';
+import 'package:product_listing_app/features/home/presentation/bloc/profile_bloc.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -65,55 +68,82 @@ class ProfilePage extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
-              AppText.light(
-                'My Profile',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 40),
-              AppText.light(
-                'Name',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.grey,
-                ),
-              ),
-              const SizedBox(height: 16),
-              AppText.heading(
-                'John Mathew',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 24),
-              AppText.light(
-                'Phone',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.grey,
-                ),
-              ),
-              const SizedBox(height: 16),
-              AppText.heading(
-                '+91 9876543210',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-            ],
+          child: BlocProvider<ProfileBloc>(
+            create: (_) => sl<ProfileBloc>()..add(const ProfileRequested()),
+            child: BlocBuilder<ProfileBloc, ProfileState>(
+              builder: (context, state) {
+                final bool loading =
+                    state is ProfileLoading || state is ProfileInitial;
+                final String name = state is ProfileLoaded
+                    ? state.profile.name
+                    : '...';
+                final String phone = state is ProfileLoaded
+                    ? state.profile.phone
+                    : '...';
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
+                    AppText.light(
+                      'My Profile',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    AppText.light(
+                      'Name',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    loading
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : AppText.heading(
+                            name,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                    const SizedBox(height: 24),
+                    AppText.light(
+                      'Phone',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    loading
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : AppText.heading(
+                            phone,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),

@@ -17,6 +17,10 @@ import 'package:product_listing_app/features/home/data/repositories/search_repos
 import 'package:product_listing_app/features/home/presentation/bloc/search_bloc.dart';
 import 'package:product_listing_app/features/home/data/repositories/wishlist_repository.dart';
 import 'package:product_listing_app/features/home/presentation/bloc/wishlist_bloc.dart';
+import 'package:product_listing_app/features/home/data/datasources/user_remote_datasource.dart';
+import 'package:product_listing_app/features/home/data/repositories/user_repository.dart';
+import 'package:product_listing_app/features/home/domain/usecases/get_user_data_usecase.dart';
+import 'package:product_listing_app/features/home/presentation/bloc/profile_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -36,6 +40,7 @@ Future<void> initializeDependencies() async {
   );
   sl.registerFactory(() => SearchBloc(repository: sl()));
   sl.registerLazySingleton(() => WishlistBloc(repository: sl()));
+  sl.registerFactory(() => ProfileBloc(getUserDataUseCase: sl()));
 
   // Use cases
   sl.registerLazySingleton(() => SendOtpUseCase(sl()));
@@ -53,6 +58,13 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton<WishlistRepository>(
     () => WishlistRepository(authLocalDataSource: sl()),
   );
+  sl.registerLazySingleton<UserRemoteDataSource>(
+    () => UserRemoteDataSourceImpl(authLocalDataSource: sl()),
+  );
+  sl.registerLazySingleton<UserRepository>(
+    () => UserRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton(() => GetUserDataUseCase(sl()));
 
   // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
